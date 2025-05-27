@@ -46,7 +46,7 @@ sealed class Screen(val route: String) {
         })
     }
     object Contacts : Screen("contacts")
-    object ContactDetails : Screen("contact_details/{contactId}") {
+    object ContactDetails : Screen("contact_details/{contactId}") { // Corrected route
         fun createRoute(contactId: Long) = "contact_details/$contactId"
         val argumentName = "contactId"
         val arguments = listOf(navArgument(argumentName) { type = NavType.LongType })

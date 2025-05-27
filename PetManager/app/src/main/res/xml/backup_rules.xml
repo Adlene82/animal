@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- TODO: Remove the following exclude tag after choosing what files/folders to back up.
+    <exclude domain="database" path="pet_manager_db.db" />
+    <exclude domain="sharedpref" path="pet_manager_prefs.xml"/>
+    -->
+</full-backup-content>
