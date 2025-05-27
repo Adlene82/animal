@@ -28,7 +28,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,7 +37,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.petmanager.R // Assuming you have a placeholder drawable
+import com.example.petmanager.R
 import com.example.petmanager.ui.navigation.Screen
 import com.example.petmanager.ui.screens.dashboard.AnimalListItem
 import com.example.petmanager.ui.screens.dashboard.DashboardUiState
@@ -46,7 +45,7 @@ import com.example.petmanager.ui.screens.dashboard.DashboardViewModel
 import com.example.petmanager.ui.theme.PetManagerTheme
 
 
-// BottomNavItem remains as previously defined in placeholder
+// TODO: Move BottomNavItem to a common package if used by other top-level screens (e.g., ui.common)
 data class BottomNavItem(
     val label: String,
     val icon: ImageVector,
@@ -60,65 +59,55 @@ fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    // val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle() // Already in uiState
 
     val bottomNavItems = listOf(
-        BottomNavItem("Accueil", Icons.Filled.Home, Screen.Dashboard),
-        BottomNavItem("Calendrier", Icons.Filled.CalendarMonth, Screen.Calendar),
-        BottomNavItem("Réserve", Icons.Filled.Inventory, Screen.FoodStock),
-        BottomNavItem("Contacts", Icons.Filled.Contacts, Screen.Contacts)
+        // TODO: Use string resources for labels R.string.bottom_nav_home, etc.
+        BottomNavItem(stringResource(R.string.bottom_nav_home), Icons.Filled.Home, Screen.Dashboard),
+        BottomNavItem(stringResource(R.string.bottom_nav_calendar), Icons.Filled.CalendarMonth, Screen.Calendar),
+        BottomNavItem(stringResource(R.string.bottom_nav_food_stock), Icons.Filled.Inventory, Screen.FoodStock),
+        BottomNavItem(stringResource(R.string.bottom_nav_contacts), Icons.Filled.Contacts, Screen.Contacts)
     )
-    // For keeping track of the selected item in BottomNavBar
-    // This might need to be hoisted or handled differently if DashboardScreen itself is a destination
-    // within a larger NavHost that *also* shows the BottomNavBar.
-    // For now, assuming Dashboard is the primary entry for this Scaffold.
-    var selectedBottomNavItem by remember { mutableStateOf(0) }
-
+    // Determine current selected item based on route more reliably
+    val currentRoute = navController.currentBackStackEntry?.destination?.route
+    val selectedBottomNavItem = remember(currentRoute) {
+        bottomNavItems.indexOfFirst { it.screen.route == currentRoute }.coerceAtLeast(0)
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mes Animaux") },
+                title = { Text(stringResource(R.string.dashboard_title_my_animals)) },
                 actions = {
-                    // Simple TextField for search, can be enhanced
-                    OutlinedTextField(
-                        value = uiState.searchQuery,
-                        onValueChange = { viewModel.onSearchQueryChanged(it) },
-                        placeholder = { Text("Rechercher...") },
-                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search Icon") },
-                        trailingIcon = {
-                            if (uiState.searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { viewModel.clearSearchQuery() }) {
-                                    Icon(Icons.Filled.Clear, contentDescription = "Clear search")
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
-                            .heightIn(min = 56.dp), // Ensure good height for tap target
-                        singleLine = true
-                    )
-                }
+                    // Search field is now part of the Column content for better layout control
+                },
+                colors = TopAppBarDefaults.topAppBarColors( // M3 styling for TopAppBar
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant 
+                )
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                viewModel.onAddAnimalClick() // ViewModel can log or prepare state if needed
-                navController.navigate(Screen.AddEditAnimal.createRoute())
-            }) {
-                Icon(Icons.Filled.Add, contentDescription = "Ajouter un animal")
+            FloatingActionButton(
+                onClick = {
+                    viewModel.onAddAnimalClick()
+                    navController.navigate(Screen.AddEditAnimal.createRoute())
+                },
+                // Modifier.minimumInteractiveComponentSize() // Default FAB size is usually sufficient
+            ) {
+                Icon(
+                    Icons.Filled.Add,
+                    contentDescription = stringResource(R.string.add_animal_fab_description)
+                )
             }
         },
         bottomBar = {
-            NavigationBar {
+            NavigationBar { // Material 3 Bottom Navigation
                 bottomNavItems.forEachIndexed { index, item ->
                     NavigationBarItem(
-                        icon = { Icon(item.icon, contentDescription = item.label) },
+                        icon = { Icon(item.icon, contentDescription = item.label) }, // Icon's CD is its label
                         label = { Text(item.label) },
-                        selected = selectedBottomNavItem == index, // Or determine by current route
+                        selected = selectedBottomNavItem == index,
                         onClick = {
-                            selectedBottomNavItem = index
+                            // State update handled by route change and remember(currentRoute)
                             navController.navigate(item.screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -132,14 +121,35 @@ fun DashboardScreen(
             }
         }
     ) { innerPadding ->
-        DashboardContent(
-            modifier = Modifier.padding(innerPadding),
-            uiState = uiState,
-            onAnimalClick = { animalId ->
-                viewModel.onAnimalClick(animalId) // ViewModel can log or prepare state
-                navController.navigate(Screen.AnimalDetails.createRoute(animalId))
-            }
-        )
+        Column(modifier = Modifier.padding(innerPadding)) { // Use Column to place search bar above content
+            OutlinedTextField(
+                value = uiState.searchQuery,
+                onValueChange = { viewModel.onSearchQueryChanged(it) },
+                placeholder = { Text(stringResource(R.string.search_animal_placeholder)) },
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.search_icon_description)) },
+                trailingIcon = {
+                    if (uiState.searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.clearSearchQuery() }) { // IconButton has min touch target by default
+                            Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.clear_search_description))
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp), // Consistent padding
+                singleLine = true,
+                shape = MaterialTheme.shapes.extraLarge // M3 search field style
+            )
+
+            DashboardContent(
+                // Modifier.padding is handled by the Column's innerPadding
+                uiState = uiState,
+                onAnimalClick = { animalId ->
+                    viewModel.onAnimalClick(animalId)
+                    navController.navigate(Screen.AnimalDetails.createRoute(animalId))
+                }
+            )
+        }
     }
 }
 

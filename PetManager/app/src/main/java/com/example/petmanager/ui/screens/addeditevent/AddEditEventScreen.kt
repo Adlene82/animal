@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.petmanager.R
+import com.example.petmanager.R // Assuming R class is generated
 import com.example.petmanager.data.local.model.Animal
 import com.example.petmanager.data.local.model.Contact
 import com.example.petmanager.ui.theme.PetManagerTheme
@@ -63,27 +63,40 @@ fun AddEditEventScreen(
             TopAppBar(
                 title = {
                     Text(
-                        if (uiState.isEditing) stringResource(R.string.title_edit_event)
-                        else stringResource(R.string.title_add_event)
+                        // TODO: Use string resources R.string.title_edit_event, R.string.title_add_event
+                        if (uiState.isEditing) stringResource(id = R.string.title_edit_event_placeholder)
+                        else stringResource(id = R.string.title_add_event_placeholder),
+                        style = MaterialTheme.typography.titleLarge // Consistent typography
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            // TODO: Use string resource R.string.action_back
+                            contentDescription = stringResource(id = R.string.action_back_placeholder)
+                        )
                     }
                 },
                 actions = {
                     TextButton(
                         onClick = viewModel::saveEvent,
-                        enabled = uiState.saveButtonEnabled
+                        enabled = uiState.saveButtonEnabled,
+                        modifier = Modifier.minimumInteractiveComponentSize() // Ensure touch target
                     ) {
-                        Text(stringResource(R.string.action_save))
+                        // TODO: Use string resource R.string.action_save
+                        Text(stringResource(id = R.string.action_save_placeholder))
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant // M3 style
+                )
             )
         }
     ) { innerPadding ->
-        if (uiState.isLoading && !uiState.isEditing) { // Show loader only for initial animal/contact list loading
+        // Show loader only for initial animal/contact list loading when creating new event
+        // or when loading existing event data.
+        if (uiState.isLoading && (uiState.isEditing || (uiState.availableAnimals.isEmpty() && uiState.availableContacts.isEmpty()))) {
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
@@ -91,7 +104,7 @@ fun AddEditEventScreen(
             AddEditEventForm(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .padding(16.dp)
+                    .padding(all = 16.dp) // Consistent padding
                     .verticalScroll(rememberScrollState()),
                 uiState = uiState,
                 eventTypes = viewModel.eventTypes,
@@ -112,48 +125,59 @@ fun AddEditEventForm(
     var showDatePickerDialog by remember { mutableStateOf(false) }
     var showTimePickerDialog by remember { mutableStateOf(false) }
 
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        if (uiState.isLoading && uiState.isEditing) { // Show loader when editing and loading event data
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) { // Consistent spacing
+        // Show loader if editing and event data is still loading (after animal/contact lists are loaded)
+        if (uiState.isLoading && uiState.isEditing) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
         }
+
         OutlinedTextField(
             value = uiState.title,
             onValueChange = onViewModelEvent::onTitleChanged,
-            label = { Text(stringResource(R.string.label_title) + "*") },
+            // TODO: Use string resource R.string.label_title_required
+            label = { Text(stringResource(id = R.string.label_title_placeholder) + "*") },
             modifier = Modifier.fillMaxWidth(),
             isError = uiState.titleError != null,
-            supportingText = { uiState.titleError?.let { Text(it) } },
+            supportingText = { uiState.titleError?.let { Text(it, style = MaterialTheme.typography.bodySmall) } },
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
-            singleLine = true
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium // M3 shape
         )
 
         OutlinedTextField(
             value = uiState.description,
             onValueChange = onViewModelEvent::onDescriptionChanged,
-            label = { Text(stringResource(R.string.label_description)) },
+            // TODO: Use string resource R.string.label_description
+            label = { Text(stringResource(id = R.string.label_description_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
-            maxLines = 3
+            maxLines = 3,
+            shape = MaterialTheme.shapes.medium
         )
 
         OutlinedTextField(
             value = uiState.location,
             onValueChange = onViewModelEvent::onLocationChanged,
-            label = { Text(stringResource(R.string.label_location)) },
+            // TODO: Use string resource R.string.label_location
+            label = { Text(stringResource(id = R.string.label_location_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
-            singleLine = true
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
         )
 
         // Date Picker
         OutlinedTextField(
             value = uiState.eventDate?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)) ?: "",
             onValueChange = {},
-            label = { Text(stringResource(R.string.label_date) + "*") },
-            modifier = Modifier.fillMaxWidth().clickable { showDatePickerDialog = true },
+            // TODO: Use string resource R.string.label_date_required
+            label = { Text(stringResource(id = R.string.label_date_placeholder) + "*") },
+            modifier = Modifier.fillMaxWidth().clickable { showDatePickerDialog = true }.minimumInteractiveComponentSize(),
             readOnly = true,
-            trailingIcon = { Icon(Icons.Filled.CalendarToday, contentDescription = null) },
-            isError = uiState.dateTimeError != null && uiState.eventDate == null
+            // TODO: Use string resource R.string.calendar_icon_description
+            trailingIcon = { Icon(Icons.Filled.CalendarToday, contentDescription = stringResource(id = R.string.calendar_icon_description_placeholder)) },
+            isError = uiState.dateTimeError != null && uiState.eventDate == null,
+            shape = MaterialTheme.shapes.medium
         )
 
         if (showDatePickerDialog) {
@@ -163,14 +187,22 @@ fun AddEditEventForm(
             DatePickerDialog(
                 onDismissRequest = { showDatePickerDialog = false },
                 confirmButton = {
-                    TextButton(onClick = {
-                        showDatePickerDialog = false
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            onViewModelEvent.onDateSelected(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate())
-                        }
-                    }) { Text(stringResource(R.string.action_ok)) }
+                    TextButton(
+                        onClick = {
+                            showDatePickerDialog = false
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                onViewModelEvent.onDateSelected(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate())
+                            }
+                        },
+                        modifier = Modifier.minimumInteractiveComponentSize()
+                    ) { Text(stringResource(id = R.string.action_ok_placeholder)) } // TODO: Use string resource
                 },
-                dismissButton = { TextButton(onClick = { showDatePickerDialog = false }) { Text(stringResource(R.string.action_cancel)) } }
+                dismissButton = {
+                    TextButton(
+                        onClick = { showDatePickerDialog = false },
+                        modifier = Modifier.minimumInteractiveComponentSize()
+                    ) { Text(stringResource(id = R.string.action_cancel_placeholder)) } // TODO: Use string resource
+                }
             ) { DatePicker(state = datePickerState) }
         }
 
@@ -178,11 +210,14 @@ fun AddEditEventForm(
         OutlinedTextField(
             value = uiState.eventTime?.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)) ?: "",
             onValueChange = {},
-            label = { Text(stringResource(R.string.label_time) + "*") },
-            modifier = Modifier.fillMaxWidth().clickable { showTimePickerDialog = true },
+            // TODO: Use string resource R.string.label_time_required
+            label = { Text(stringResource(id = R.string.label_time_placeholder) + "*") },
+            modifier = Modifier.fillMaxWidth().clickable { showTimePickerDialog = true }.minimumInteractiveComponentSize(),
             readOnly = true,
-            trailingIcon = { Icon(Icons.Filled.AccessTime, contentDescription = null) },
-            isError = uiState.dateTimeError != null && uiState.eventTime == null
+            // TODO: Use string resource R.string.time_icon_description
+            trailingIcon = { Icon(Icons.Filled.AccessTime, contentDescription = stringResource(id = R.string.time_icon_description_placeholder)) },
+            isError = uiState.dateTimeError != null && uiState.eventTime == null,
+            shape = MaterialTheme.shapes.medium
         )
 
         if (showTimePickerDialog) {
@@ -194,14 +229,22 @@ fun AddEditEventForm(
             TimePickerDialog( // Custom Dialog for TimePicker as M3 TimePickerDialog is not standard
                 onDismissRequest = { showTimePickerDialog = false },
                 confirmButton = {
-                    TextButton(onClick = {
-                        showTimePickerDialog = false
-                        onViewModelEvent.onTimeSelected(LocalTime.of(timePickerState.hour, timePickerState.minute))
-                    }) { Text(stringResource(R.string.action_ok)) }
+                    TextButton(
+                        onClick = {
+                            showTimePickerDialog = false
+                            onViewModelEvent.onTimeSelected(LocalTime.of(timePickerState.hour, timePickerState.minute))
+                        },
+                        modifier = Modifier.minimumInteractiveComponentSize()
+                    ) { Text(stringResource(id = R.string.action_ok_placeholder)) } // TODO: Use string resource
                 },
-                dismissButton = { TextButton(onClick = { showTimePickerDialog = false }) { Text(stringResource(R.string.action_cancel)) } }
+                dismissButton = {
+                    TextButton(
+                        onClick = { showTimePickerDialog = false },
+                        modifier = Modifier.minimumInteractiveComponentSize()
+                    ) { Text(stringResource(id = R.string.action_cancel_placeholder)) } // TODO: Use string resource
+                }
             ) {
-                TimePicker(state = timePickerState, modifier = Modifier.padding(16.dp))
+                TimePicker(state = timePickerState, modifier = Modifier.padding(16.dp).fillMaxWidth()) // Ensure TimePicker fills width
             }
         }
 
@@ -211,18 +254,21 @@ fun AddEditEventForm(
 
         // Event Type Dropdown
         DropdownField(
-            label = stringResource(R.string.label_event_type) + "*",
+            // TODO: Use string resource R.string.label_event_type_required
+            label = stringResource(id = R.string.label_event_type_placeholder) + "*",
             options = eventTypes,
-            selectedOption = uiState.selectedEventType,
+            selectedOption = uiState.selectedEventType.ifEmpty { eventTypes.firstOrNull() ?: "" },
             onOptionSelected = onViewModelEvent::onEventTypeSelected,
             error = uiState.eventTypeError
         )
 
         // Animal Dropdown
         DropdownField(
-            label = stringResource(R.string.label_associated_animal),
-            options = listOf(stringResource(R.string.option_none)) + uiState.availableAnimals.map { it.name }, // Add "None" option
-            selectedOption = uiState.availableAnimals.find { it.animalId == uiState.selectedAnimalId }?.name ?: stringResource(R.string.option_none),
+            // TODO: Use string resource R.string.label_associated_animal
+            label = stringResource(id = R.string.label_associated_animal_placeholder),
+            // TODO: Use string resource R.string.option_none
+            options = listOf(stringResource(id = R.string.option_none_placeholder)) + uiState.availableAnimals.map { it.name },
+            selectedOption = uiState.availableAnimals.find { it.animalId == uiState.selectedAnimalId }?.name ?: stringResource(id = R.string.option_none_placeholder),
             onOptionSelected = { selectedName ->
                 val selectedAnimal = uiState.availableAnimals.find { it.name == selectedName }
                 onViewModelEvent.onAnimalSelected(selectedAnimal?.animalId?.toString())
@@ -231,9 +277,11 @@ fun AddEditEventForm(
 
         // Contact Dropdown
         DropdownField(
-            label = stringResource(R.string.label_associated_contact),
-            options = listOf(stringResource(R.string.option_none)) + uiState.availableContacts.map { it.name },
-            selectedOption = uiState.availableContacts.find { it.contactId == uiState.selectedContactId }?.name ?: stringResource(R.string.option_none),
+            // TODO: Use string resource R.string.label_associated_contact
+            label = stringResource(id = R.string.label_associated_contact_placeholder),
+            // TODO: Use string resource R.string.option_none
+            options = listOf(stringResource(id = R.string.option_none_placeholder)) + uiState.availableContacts.map { it.name },
+            selectedOption = uiState.availableContacts.find { it.contactId == uiState.selectedContactId }?.name ?: stringResource(id = R.string.option_none_placeholder),
             onOptionSelected = { selectedName ->
                 val selectedContact = uiState.availableContacts.find { it.name == selectedName }
                 onViewModelEvent.onContactSelected(selectedContact?.contactId?.toString())
@@ -241,12 +289,17 @@ fun AddEditEventForm(
         )
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().minimumInteractiveComponentSize(), // Ensure row is easily tappable for Switch
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(stringResource(R.string.label_recurring_event), style = MaterialTheme.typography.bodyLarge)
-            Switch(checked = uiState.isRecurring, onCheckedChange = onViewModelEvent::onIsRecurringChanged)
+            // TODO: Use string resource R.string.label_recurring_event
+            Text(stringResource(id = R.string.label_recurring_event_placeholder), style = MaterialTheme.typography.bodyLarge)
+            Switch(
+                checked = uiState.isRecurring,
+                onCheckedChange = onViewModelEvent::onIsRecurringChanged,
+                modifier = Modifier.minimumInteractiveComponentSize() // Ensure switch itself is large enough
+            )
         }
     }
 }
@@ -258,32 +311,39 @@ fun DropdownField(
     options: List<String>,
     selectedOption: String,
     onOptionSelected: (String) -> Unit,
-    error: String? = null
+    error: String? = null,
+    enabled: Boolean = true // Added enabled parameter
 ) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
+        onExpandedChange = { if (enabled) expanded = !expanded }, // Only change if enabled
         modifier = Modifier.fillMaxWidth()
     ) {
         OutlinedTextField(
-            value = selectedOption.ifEmpty { options.firstOrNull() ?: "" }, // Show first option if current selection is empty
+            value = selectedOption,
             onValueChange = {}, // Read-only
             label = { Text(label) },
             readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.menuAnchor().fillMaxWidth(),
+            modifier = Modifier.menuAnchor().fillMaxWidth().minimumInteractiveComponentSize(), // Ensure touch target
             isError = error != null,
-            supportingText = { error?.let { Text(it) } }
+            supportingText = { error?.let { Text(it, style = MaterialTheme.typography.bodySmall) } },
+            shape = MaterialTheme.shapes.medium, // M3 shape
+            enabled = enabled // Pass enabled to OutlinedTextField
         )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        ExposedDropdownMenu(
+            expanded = expanded && enabled, // Only show if enabled
+            onDismissRequest = { expanded = false }
+        ) {
             options.forEach { selectionOption ->
                 DropdownMenuItem(
                     text = { Text(selectionOption) },
                     onClick = {
                         onOptionSelected(selectionOption)
                         expanded = false
-                    }
+                    },
+                    modifier = Modifier.minimumInteractiveComponentSize() // Ensure touch target
                 )
             }
         }
@@ -293,7 +353,7 @@ fun DropdownField(
 // Custom TimePickerDialog Composable
 @Composable
 fun TimePickerDialog(
-    title: String = "Select Time",
+    title: String = "Select Time", // TODO: Use string resource
     onDismissRequest: () -> Unit,
     confirmButton: @Composable () -> Unit,
     dismissButton: @Composable (() -> Unit)? = null,
@@ -301,10 +361,11 @@ fun TimePickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text(title) },
+        title = { Text(title, style = MaterialTheme.typography.titleLarge) }, // Consistent title typography
         text = content,
         confirmButton = confirmButton,
-        dismissButton = dismissButton
+        dismissButton = dismissButton,
+        shape = MaterialTheme.shapes.extraLarge // M3 Dialog shape
     )
 }
 
@@ -329,17 +390,22 @@ fun AddEditEventScreenPreview_Add() {
     }
 }
 
-// String resources for preview and actual use:
-// <string name="title_edit_event">Modifier Événement</string>
-// <string name="title_add_event">Ajouter Événement</string>
-// <string name="label_title">Titre</string>
-// <string name="label_description">Description</string>
-// <string name="label_location">Lieu</string>
-// <string name="label_date">Date</string>
-// <string name="label_time">Heure</string>
-// <string name="label_event_type">Type d\'événement</string>
-// <string name="label_associated_animal">Animal Associé (optionnel)</string>
-// <string name="label_associated_contact">Contact Associé (optionnel)</string>
-// <string name="label_recurring_event">Répéter l\'événement</string>
-// <string name="option_none">Aucun</string>
-// (Other common strings like "action_save", "action_back", "action_ok", "action_cancel" are assumed)
+// Placeholder string resource IDs used:
+// R.string.title_edit_event_placeholder
+// R.string.title_add_event_placeholder
+// R.string.action_back_placeholder
+// R.string.action_save_placeholder
+// R.string.label_title_placeholder
+// R.string.label_description_placeholder
+// R.string.label_location_placeholder
+// R.string.label_date_placeholder
+// R.string.calendar_icon_description_placeholder
+// R.string.action_ok_placeholder
+// R.string.action_cancel_placeholder
+// R.string.label_time_placeholder
+// R.string.time_icon_description_placeholder
+// R.string.label_event_type_placeholder
+// R.string.label_associated_animal_placeholder
+// R.string.option_none_placeholder
+// R.string.label_associated_contact_placeholder
+// R.string.label_recurring_event_placeholder

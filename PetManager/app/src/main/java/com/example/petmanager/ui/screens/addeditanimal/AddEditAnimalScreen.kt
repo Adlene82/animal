@@ -3,7 +3,6 @@ package com.example.petmanager.ui.screens.addeditanimal
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,7 +32,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.petmanager.R // For placeholder drawable and string resources
+import com.example.petmanager.R // Assuming R class is generated
 import com.example.petmanager.ui.theme.PetManagerTheme
 import java.time.Instant
 import java.time.LocalDate
@@ -46,25 +46,22 @@ import java.time.format.FormatStyle
 fun AddEditAnimalScreen(
     navController: NavController,
     viewModel: AddEditAnimalViewModel = hiltViewModel()
-    // animalId is handled by ViewModel's SavedStateHandle
 ) {
     val uiState = viewModel.uiState
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
-    // Handle Snackbar messages
     LaunchedEffect(key1 = uiState.snackbarMessage) {
         uiState.snackbarMessage?.getContentIfNotHandled()?.let { message ->
             snackbarHostState.showSnackbar(message = message, duration = SnackbarDuration.Short)
-            viewModel.consumeSnackbarMessage() // Important to consume the event
+            viewModel.consumeSnackbarMessage()
         }
     }
 
-    // Handle navigation
     LaunchedEffect(key1 = uiState.navigateBackEvent) {
         uiState.navigateBackEvent?.getContentIfNotHandled()?.let {
             navController.popBackStack()
-            viewModel.consumeNavigateBackEvent() // Important to consume the event
+            viewModel.consumeNavigateBackEvent()
         }
     }
 
@@ -74,23 +71,33 @@ fun AddEditAnimalScreen(
             TopAppBar(
                 title = {
                     Text(
-                        if (uiState.isEditing) stringResource(R.string.title_edit_animal)
-                        else stringResource(R.string.title_add_animal)
+                        // TODO: Use string resources R.string.title_edit_animal, R.string.title_add_animal
+                        if (uiState.isEditing) stringResource(id = R.string.title_edit_animal_placeholder)
+                        else stringResource(id = R.string.title_add_animal_placeholder)
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            // TODO: Use string resource R.string.action_back
+                            contentDescription = stringResource(id = R.string.action_back_placeholder)
+                        )
                     }
                 },
                 actions = {
                     TextButton(
                         onClick = { viewModel.saveAnimal() },
-                        enabled = uiState.saveButtonEnabled
+                        enabled = uiState.saveButtonEnabled,
+                        modifier = Modifier.minimumInteractiveComponentSize() // Ensure touch target
                     ) {
-                        Text(stringResource(R.string.action_save))
+                        // TODO: Use string resource R.string.action_save
+                        Text(stringResource(id = R.string.action_save_placeholder))
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant // M3 style
+                )
             )
         }
     ) { innerPadding ->
@@ -102,7 +109,7 @@ fun AddEditAnimalScreen(
             AddEditAnimalForm(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .padding(16.dp)
+                    .padding(all = 16.dp) // Consistent padding
                     .verticalScroll(rememberScrollState()),
                 uiState = uiState,
                 sexOptions = viewModel.sexOptions,
@@ -147,15 +154,15 @@ fun AddEditAnimalForm(
         onPhotoSelected(uri)
     }
 
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        // Photo Picker
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) { // Consistent spacing
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-                .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .clickable { imagePickerLauncher.launch("image/*") },
+                .clip(MaterialTheme.shapes.large) // M3 shape
+                .background(MaterialTheme.colorScheme.secondaryContainer) // Theme color
+                .clickable { imagePickerLauncher.launch("image/*") }
+                .minimumInteractiveComponentSize(), // Ensure touch target
             contentAlignment = Alignment.Center
         ) {
             if (uiState.photoUri != null) {
@@ -164,7 +171,8 @@ fun AddEditAnimalForm(
                         .data(uiState.photoUri)
                         .crossfade(true)
                         .build(),
-                    contentDescription = stringResource(R.string.animal_photo_description_current),
+                    // TODO: Use string resource R.string.animal_photo_current_description
+                    contentDescription = stringResource(id = R.string.animal_photo_description_current_placeholder),
                     placeholder = painterResource(R.drawable.ic_placeholder_pet),
                     error = painterResource(R.drawable.ic_placeholder_pet),
                     contentScale = ContentScale.Crop,
@@ -172,8 +180,14 @@ fun AddEditAnimalForm(
                 )
             } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Filled.Pets, contentDescription = null, modifier = Modifier.size(48.dp))
-                    Text(stringResource(R.string.action_choose_photo), style = MaterialTheme.typography.bodySmall)
+                    Icon(
+                        Icons.Filled.Pets,
+                        // TODO: Use string resource R.string.choose_photo_icon_description
+                        contentDescription = stringResource(id = R.string.choose_photo_icon_description_placeholder),
+                        modifier = Modifier.size(48.dp)
+                    )
+                    // TODO: Use string resource R.string.action_choose_photo
+                    Text(stringResource(id = R.string.action_choose_photo_placeholder), style = MaterialTheme.typography.bodyMedium) // Improved style
                 }
             }
         }
@@ -181,83 +195,84 @@ fun AddEditAnimalForm(
         OutlinedTextField(
             value = uiState.name,
             onValueChange = onNameChanged,
-            label = { Text(stringResource(R.string.label_name) + "*") },
+            // TODO: Use string resource R.string.label_name_required
+            label = { Text(stringResource(id = R.string.label_name_placeholder) + "*") },
             modifier = Modifier.fillMaxWidth(),
             isError = uiState.nameError != null,
             supportingText = { uiState.nameError?.let { Text(it) } },
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Next
-            ),
-            singleLine = true
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium // M3 shape
         )
 
         OutlinedTextField(
             value = uiState.species,
             onValueChange = onSpeciesChanged,
-            label = { Text(stringResource(R.string.label_species) + "*") },
+            // TODO: Use string resource R.string.label_species_required
+            label = { Text(stringResource(id = R.string.label_species_placeholder) + "*") },
             modifier = Modifier.fillMaxWidth(),
             isError = uiState.speciesError != null,
             supportingText = { uiState.speciesError?.let { Text(it) } },
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Next
-            ),
-            singleLine = true
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
         )
 
         OutlinedTextField(
             value = uiState.breed,
             onValueChange = onBreedChanged,
-            label = { Text(stringResource(R.string.label_breed)) },
+            // TODO: Use string resource R.string.label_breed
+            label = { Text(stringResource(id = R.string.label_breed_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Next
-            ),
-            singleLine = true
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
         )
 
-        // Birth Date Picker
         OutlinedTextField(
             value = uiState.birthDate?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)) ?: "",
-            onValueChange = { /* Read-only, updated by dialog */ },
-            label = { Text(stringResource(R.string.label_birthdate)) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showDatePickerDialog = true },
+            onValueChange = { /* Read-only */ },
+            // TODO: Use string resource R.string.label_birthdate
+            label = { Text(stringResource(id = R.string.label_birthdate_placeholder)) },
+            modifier = Modifier.fillMaxWidth().clickable { showDatePickerDialog = true },
             readOnly = true,
-            trailingIcon = { Icon(Icons.Filled.CalendarToday, contentDescription = null) },
-            isError = uiState.birthDateError != null, // Assuming birthDateError is part of uiState
-            supportingText = { uiState.birthDateError?.let { Text(it) } }
+            // TODO: Use string resource R.string.calendar_icon_description
+            trailingIcon = { Icon(Icons.Filled.CalendarToday, contentDescription = stringResource(id = R.string.calendar_icon_description_placeholder)) },
+            isError = uiState.birthDateError != null,
+            supportingText = { uiState.birthDateError?.let { Text(it) } },
+            shape = MaterialTheme.shapes.medium
         )
 
         if (showDatePickerDialog) {
             val datePickerState = rememberDatePickerState(
                 initialSelectedDateMillis = uiState.birthDate?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
-                    ?: LocalDate.now().atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli(),
-                yearRange = (LocalDate.now().year - 50)..LocalDate.now().year // Example range
+                    ?: System.currentTimeMillis(), // Default to today
+                yearRange = (LocalDate.now().year - 100)..LocalDate.now().year // Expanded range
             )
             DatePickerDialog(
                 onDismissRequest = { showDatePickerDialog = false },
                 confirmButton = {
-                    TextButton(onClick = {
-                        showDatePickerDialog = false
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            onBirthDateSelected(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate())
-                        }
-                    }) { Text(stringResource(R.string.action_ok)) }
+                    TextButton(
+                        onClick = {
+                            showDatePickerDialog = false
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                onBirthDateSelected(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate())
+                            }
+                        },
+                        modifier = Modifier.minimumInteractiveComponentSize()
+                    ) { Text(stringResource(id = R.string.action_ok_placeholder)) } // TODO: Use string resource
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDatePickerDialog = false }) { Text(stringResource(R.string.action_cancel)) }
+                    TextButton(
+                        onClick = { showDatePickerDialog = false },
+                        modifier = Modifier.minimumInteractiveComponentSize()
+                    ) { Text(stringResource(id = R.string.action_cancel_placeholder)) } // TODO: Use string resource
                 }
             ) {
                 DatePicker(state = datePickerState)
             }
         }
 
-
-        // Sex Selection
         var sexExpanded by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(
             expanded = sexExpanded,
@@ -266,23 +281,23 @@ fun AddEditAnimalForm(
         ) {
             OutlinedTextField(
                 value = uiState.sex,
-                onValueChange = { /* Read-only, updated by dropdown */ },
-                label = { Text(stringResource(R.string.label_sex)) },
+                onValueChange = { /* Read-only */ },
+                // TODO: Use string resource R.string.label_sex
+                label = { Text(stringResource(id = R.string.label_sex_placeholder)) },
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sexExpanded) },
-                modifier = Modifier.menuAnchor().fillMaxWidth() // Important for dropdown behavior
+                modifier = Modifier.menuAnchor().fillMaxWidth(), // Important for dropdown behavior
+                shape = MaterialTheme.shapes.medium
             )
-            ExposedDropdownMenu(
-                expanded = sexExpanded,
-                onDismissRequest = { sexExpanded = false }
-            ) {
+            ExposedDropdownMenu(expanded = sexExpanded, onDismissRequest = { sexExpanded = false }) {
                 sexOptions.forEach { selectionOption ->
                     DropdownMenuItem(
                         text = { Text(selectionOption) },
                         onClick = {
                             onSexChanged(selectionOption)
                             sexExpanded = false
-                        }
+                        },
+                        modifier = Modifier.minimumInteractiveComponentSize()
                     )
                 }
             }
@@ -291,46 +306,45 @@ fun AddEditAnimalForm(
         OutlinedTextField(
             value = uiState.chipId,
             onValueChange = onChipIdChanged,
-            label = { Text(stringResource(R.string.label_chip_id)) },
+            // TODO: Use string resource R.string.label_chip_id
+            label = { Text(stringResource(id = R.string.label_chip_id_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            singleLine = true
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next), // Changed for alphanumeric
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
         )
 
         OutlinedTextField(
             value = uiState.diet,
             onValueChange = onDietChanged,
-            label = { Text(stringResource(R.string.label_diet)) },
+            // TODO: Use string resource R.string.label_diet
+            label = { Text(stringResource(id = R.string.label_diet_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Next
-            ),
-            maxLines = 3
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
+            maxLines = 3,
+            shape = MaterialTheme.shapes.medium
         )
 
         OutlinedTextField(
             value = uiState.allergies,
             onValueChange = onAllergiesChanged,
-            label = { Text(stringResource(R.string.label_allergies)) },
+            // TODO: Use string resource R.string.label_allergies
+            label = { Text(stringResource(id = R.string.label_allergies_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Next
-            ),
-            maxLines = 3
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
+            maxLines = 3,
+            shape = MaterialTheme.shapes.medium
         )
 
         OutlinedTextField(
             value = uiState.generalNotes,
             onValueChange = onGeneralNotesChanged,
-            label = { Text(stringResource(R.string.label_general_notes)) },
+            // TODO: Use string resource R.string.label_general_notes
+            label = { Text(stringResource(id = R.string.label_general_notes_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Done // Last field
-            ),
-            maxLines = 5
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
+            maxLines = 5,
+            shape = MaterialTheme.shapes.medium
         )
     }
 }
@@ -339,8 +353,6 @@ fun AddEditAnimalForm(
 @Composable
 fun AddEditAnimalScreenPreview_Add() {
     PetManagerTheme {
-        // Mock NavController, ViewModel is more complex due to Hilt and SavedStateHandle
-        // For previewing the form itself, it's easier to call AddEditAnimalForm directly
         AddEditAnimalForm(
             uiState = AddEditAnimalUiState(isEditing = false, sex = "Mâle", saveButtonEnabled = true),
             sexOptions = listOf("Mâle", "Femelle", "Inconnu"),
@@ -368,15 +380,23 @@ fun AddEditAnimalScreenPreview_Edit() {
     }
 }
 
-// Needed String resources for preview and actual use:
-// <string name="title_edit_animal">Modifier Animal</string>
-// <string name="title_add_animal">Ajouter Animal</string>
-// <string name="action_save">Sauvegarder</string>
-// <string name="animal_photo_description_current">Photo actuelle de l\'animal</string>
-// <string name="action_choose_photo">Choisir une photo</string>
-// <string name="label_birthdate">Date de naissance</string>
-// <string name="action_ok">OK</string>
-// <string name="action_cancel">Annuler</string>
-// <string name="label_sex">Sexe</string>
-// (Other labels like name, species, breed, chip_id, diet, allergies, general_notes are assumed from AnimalDetailsScreen or are common)
-// (action_back is assumed from AnimalDetailsScreen)
+// Placeholder string resource IDs used in TODOs:
+// R.string.title_edit_animal_placeholder
+// R.string.title_add_animal_placeholder
+// R.string.action_back_placeholder
+// R.string.action_save_placeholder
+// R.string.animal_photo_description_current_placeholder
+// R.string.choose_photo_icon_description_placeholder
+// R.string.action_choose_photo_placeholder
+// R.string.label_name_placeholder
+// R.string.label_species_placeholder
+// R.string.label_breed_placeholder
+// R.string.label_birthdate_placeholder
+// R.string.calendar_icon_description_placeholder
+// R.string.action_ok_placeholder
+// R.string.action_cancel_placeholder
+// R.string.label_sex_placeholder
+// R.string.label_chip_id_placeholder
+// R.string.label_diet_placeholder
+// R.string.label_allergies_placeholder
+// R.string.label_general_notes_placeholder

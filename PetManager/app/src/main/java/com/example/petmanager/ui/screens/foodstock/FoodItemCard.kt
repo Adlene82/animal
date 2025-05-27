@@ -15,13 +15,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.petmanager.R // For placeholder drawable
+import com.example.petmanager.R // Assuming R class and ic_placeholder_food exist
 import com.example.petmanager.ui.theme.PetManagerTheme
 import java.text.DecimalFormat
 
@@ -33,26 +34,27 @@ fun FoodItemCard(
     modifier: Modifier = Modifier
 ) {
     val cardBorderColor = if (foodItem.lowStock) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outlineVariant
-    val df = DecimalFormat("#.#") // To format quantity nicely
+    val df = DecimalFormat("#.#")
 
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        border = BorderStroke(1.dp, cardBorderColor)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), // Consistent elevation
+        border = BorderStroke(1.dp, cardBorderColor),
+        shape = MaterialTheme.shapes.medium // Consistent M3 shape
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(12.dp), // Consistent padding
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Food Image Placeholder
+            // Food Image
             Box(
                 modifier = Modifier
                     .size(80.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                    .clip(MaterialTheme.shapes.medium) // Consistent shape
+                    .background(MaterialTheme.colorScheme.surfaceVariant), // Neutral placeholder background
                 contentAlignment = Alignment.Center
             ) {
                 if (foodItem.photoUri != null) {
@@ -61,7 +63,8 @@ fun FoodItemCard(
                             .data(foodItem.photoUri)
                             .crossfade(true)
                             .build(),
-                        contentDescription = "Photo of ${foodItem.name}",
+                        // TODO: Use string resource R.string.food_item_photo_description
+                        contentDescription = stringResource(id = R.string.food_item_photo_description_placeholder, foodItem.name),
                         placeholder = painterResource(id = R.drawable.ic_placeholder_food),
                         error = painterResource(id = R.drawable.ic_placeholder_food),
                         contentScale = ContentScale.Crop,
@@ -70,65 +73,79 @@ fun FoodItemCard(
                 } else {
                     Icon(
                         imageVector = Icons.Filled.Fastfood,
-                        contentDescription = "No photo available for ${foodItem.name}",
+                        // TODO: Use string resource R.string.food_item_photo_placeholder
+                        contentDescription = stringResource(id = R.string.food_item_photo_placeholder_placeholder, foodItem.name),
                         modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant // Themed color
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp)) // Consistent spacing
 
             Column(
-                modifier = Modifier.weight(1f), // Take remaining space
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp) // Consistent internal spacing
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = foodItem.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium, // M3 Typography
+                        fontWeight = FontWeight.Bold, // Keep bold for emphasis
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false) // Prevent text from pushing icon
+                        modifier = Modifier.weight(1f, fill = false),
+                        color = MaterialTheme.colorScheme.onSurface // Explicit color
                     )
                     if (foodItem.lowStock) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             Icons.Filled.Warning,
-                            contentDescription = "Low stock alert",
-                            tint = MaterialTheme.colorScheme.error,
+                            // TODO: Use string resource R.string.low_stock_alert_icon_description
+                            contentDescription = stringResource(id = R.string.low_stock_alert_icon_description_placeholder),
+                            tint = MaterialTheme.colorScheme.error, // Consistent error color
                             modifier = Modifier.size(20.dp)
                         )
                     }
                 }
 
-                if (foodItem.brand != null) {
+                foodItem.brand?.takeIf { it.isNotBlank() }?.let { // Show brand only if present
                     Text(
-                        text = "Marque: ${foodItem.brand}",
+                        // TODO: Use string resource R.string.food_item_brand_label
+                        text = stringResource(id = R.string.food_item_brand_label_placeholder, it),
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant // Softer color
                     )
                 }
                 Text(
-                    text = "Type: ${foodItem.type}",
+                    // TODO: Use string resource R.string.food_item_type_label
+                    text = stringResource(id = R.string.food_item_type_label_placeholder, foodItem.type),
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Stock: ${df.format(foodItem.currentQuantity)} / ${df.format(foodItem.initialQuantity)} ${foodItem.quantityUnit}",
+                    // TODO: Use string resource R.string.food_item_stock_label
+                    text = stringResource(
+                        id = R.string.food_item_stock_label_placeholder,
+                        df.format(foodItem.currentQuantity),
+                        df.format(foodItem.initialQuantity),
+                        foodItem.quantityUnit
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface // Primary info color
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 LinearProgressIndicator(
-                    progress = { foodItem.stockProgress }, // State-based progress
+                    progress = { foodItem.stockProgress },
                     modifier = Modifier.fillMaxWidth(),
-                    color = if (foodItem.lowStock) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    color = if (foodItem.lowStock) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary, // Consistent color logic
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant // M3 track color
                 )
             }
         }
@@ -195,17 +212,10 @@ fun FoodItemCardPreview_DarkLowStock() {
     }
 }
 
-// Placeholder for R.drawable.ic_placeholder_food - needs to be created
-// Example: res/drawable/ic_placeholder_food.xml
-// <vector xmlns:android="http://schemas.android.com/apk/res/android"
-//     android:width="24dp"
-//     android:height="24dp"
-//     android:viewportWidth="24"
-//     android:viewportHeight="24"
-//     android:tint="?attr/colorControlNormal">
-//   <path
-//       android:fillColor="@android:color/white"
-//       android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM11,17L7,17v-2h4v2zM11,13L7,13v-2h4v2zM11,9L7,9V7h4V9zM17,17h-4v-2h4v2zM17,13h-4v-2h4v2zM17,9h-4V7h4V9z"/>
-// </vector>
-// For a more relevant icon, consider using one from Material Symbols or a custom SVG.
-// For this example, Icons.Filled.Fastfood is used as a fallback in the card.
+// Placeholder string resource IDs used:
+// R.string.food_item_photo_description_placeholder
+// R.string.food_item_photo_placeholder_placeholder
+// R.string.low_stock_alert_icon_description_placeholder
+// R.string.food_item_brand_label_placeholder
+// R.string.food_item_type_label_placeholder
+// R.string.food_item_stock_label_placeholder

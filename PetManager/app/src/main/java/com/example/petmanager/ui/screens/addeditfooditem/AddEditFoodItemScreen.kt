@@ -31,7 +31,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.petmanager.R // For placeholder drawable and string resources
+import com.example.petmanager.R // Assuming R class is generated
 import com.example.petmanager.ui.theme.PetManagerTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,13 +39,11 @@ import com.example.petmanager.ui.theme.PetManagerTheme
 fun AddEditFoodItemScreen(
     navController: NavController,
     viewModel: AddEditFoodItemViewModel = hiltViewModel()
-    // foodItemId is handled by ViewModel's SavedStateHandle
 ) {
     val uiState = viewModel.uiState
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
-    // Handle Snackbar messages
     LaunchedEffect(key1 = uiState.snackbarMessage) {
         uiState.snackbarMessage?.getContentIfNotHandled()?.let { message ->
             snackbarHostState.showSnackbar(message = message, duration = SnackbarDuration.Short)
@@ -53,7 +51,6 @@ fun AddEditFoodItemScreen(
         }
     }
 
-    // Handle navigation
     LaunchedEffect(key1 = uiState.navigateBackEvent) {
         uiState.navigateBackEvent?.getContentIfNotHandled()?.let {
             navController.popBackStack()
@@ -67,23 +64,34 @@ fun AddEditFoodItemScreen(
             TopAppBar(
                 title = {
                     Text(
-                        if (uiState.isEditing) stringResource(R.string.title_edit_food_item)
-                        else stringResource(R.string.title_add_food_item)
+                        // TODO: Use string resources R.string.title_edit_food_item, R.string.title_add_food_item
+                        if (uiState.isEditing) stringResource(R.string.title_edit_food_item_placeholder)
+                        else stringResource(R.string.title_add_food_item_placeholder),
+                        style = MaterialTheme.typography.titleLarge // Consistent typography
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            // TODO: Use string resource R.string.action_back
+                            contentDescription = stringResource(R.string.action_back_placeholder)
+                        )
                     }
                 },
                 actions = {
                     TextButton(
                         onClick = { viewModel.saveFoodItem() },
-                        enabled = uiState.saveButtonEnabled
+                        enabled = uiState.saveButtonEnabled,
+                        modifier = Modifier.minimumInteractiveComponentSize() // Ensure touch target
                     ) {
-                        Text(stringResource(R.string.action_save))
+                        // TODO: Use string resource R.string.action_save
+                        Text(stringResource(R.string.action_save_placeholder))
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant // M3 style
+                )
             )
         }
     ) { innerPadding ->
@@ -95,7 +103,7 @@ fun AddEditFoodItemScreen(
             AddEditFoodItemForm(
                 modifier = Modifier
                     .padding(innerPadding)
-                    .padding(16.dp)
+                    .padding(all = 16.dp) // Consistent padding
                     .verticalScroll(rememberScrollState()),
                 uiState = uiState,
                 onNameChanged = viewModel::onNameChanged,
@@ -133,15 +141,15 @@ fun AddEditFoodItemForm(
         onPhotoSelected(uri)
     }
 
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        // Photo Picker
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) { // Consistent spacing
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-                .clip(MaterialTheme.shapes.medium)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .clickable { imagePickerLauncher.launch("image/*") },
+                .clip(MaterialTheme.shapes.large) // M3 shape
+                .background(MaterialTheme.colorScheme.secondaryContainer) // Theme color
+                .clickable { imagePickerLauncher.launch("image/*") }
+                .minimumInteractiveComponentSize(), // Ensure touch target
             contentAlignment = Alignment.Center
         ) {
             if (uiState.photoUri != null) {
@@ -150,7 +158,8 @@ fun AddEditFoodItemForm(
                         .data(uiState.photoUri)
                         .crossfade(true)
                         .build(),
-                    contentDescription = stringResource(R.string.food_item_photo_description_current),
+                    // TODO: Use string resource R.string.food_item_photo_current_description
+                    contentDescription = stringResource(R.string.food_item_photo_description_current_placeholder),
                     placeholder = painterResource(R.drawable.ic_placeholder_food),
                     error = painterResource(R.drawable.ic_placeholder_food),
                     contentScale = ContentScale.Crop,
@@ -158,8 +167,14 @@ fun AddEditFoodItemForm(
                 )
             } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Filled.Fastfood, contentDescription = null, modifier = Modifier.size(48.dp))
-                    Text(stringResource(R.string.action_choose_photo), style = MaterialTheme.typography.bodySmall)
+                    Icon(
+                        Icons.Filled.Fastfood,
+                        // TODO: Use string resource R.string.choose_photo_icon_description
+                        contentDescription = stringResource(R.string.choose_photo_icon_description_placeholder),
+                        modifier = Modifier.size(48.dp)
+                    )
+                    // TODO: Use string resource R.string.action_choose_photo
+                    Text(stringResource(R.string.action_choose_photo_placeholder), style = MaterialTheme.typography.bodyMedium) // Improved style
                 }
             }
         }
@@ -167,85 +182,102 @@ fun AddEditFoodItemForm(
         OutlinedTextField(
             value = uiState.name,
             onValueChange = onNameChanged,
-            label = { Text(stringResource(R.string.label_name) + "*") },
+            // TODO: Use string resource R.string.label_name_required
+            label = { Text(stringResource(R.string.label_name_placeholder) + "*") },
             modifier = Modifier.fillMaxWidth(),
             isError = uiState.nameError != null,
             supportingText = { uiState.nameError?.let { Text(it) } },
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
-            singleLine = true
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium // M3 shape
         )
 
         OutlinedTextField(
             value = uiState.brand,
             onValueChange = onBrandChanged,
-            label = { Text(stringResource(R.string.label_brand)) },
+            // TODO: Use string resource R.string.label_brand
+            label = { Text(stringResource(R.string.label_brand_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next),
-            singleLine = true
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
         )
 
         OutlinedTextField(
             value = uiState.type,
             onValueChange = onTypeChanged,
-            label = { Text(stringResource(R.string.label_type)) },
+            // TODO: Use string resource R.string.label_type
+            label = { Text(stringResource(R.string.label_type_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
-            singleLine = true
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
         )
 
         OutlinedTextField(
             value = uiState.targetSpecies,
             onValueChange = onTargetSpeciesChanged,
-            label = { Text(stringResource(R.string.label_target_species)) },
+            // TODO: Use string resource R.string.label_target_species
+            label = { Text(stringResource(R.string.label_target_species_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
-            singleLine = true
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
         )
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 value = uiState.initialQuantity,
                 onValueChange = onInitialQuantityChanged,
-                label = { Text(stringResource(R.string.label_initial_quantity) + "*") },
+                // TODO: Use string resource R.string.label_initial_quantity_required
+                label = { Text(stringResource(R.string.label_initial_quantity_placeholder) + "*") },
                 modifier = Modifier.weight(1f),
                 isError = uiState.initialQuantityError != null,
                 supportingText = { uiState.initialQuantityError?.let { Text(it) } },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-                singleLine = true
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium
             )
             OutlinedTextField(
                 value = uiState.currentQuantity,
                 onValueChange = onCurrentQuantityChanged,
-                label = { Text(stringResource(R.string.label_current_quantity) + "*") },
+                // TODO: Use string resource R.string.label_current_quantity_required
+                label = { Text(stringResource(R.string.label_current_quantity_placeholder) + "*") },
                 modifier = Modifier.weight(1f),
                 isError = uiState.currentQuantityError != null,
                 supportingText = { uiState.currentQuantityError?.let { Text(it) } },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-                singleLine = true
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium
             )
         }
 
         OutlinedTextField(
             value = uiState.quantityUnit,
             onValueChange = onQuantityUnitChanged,
-            label = { Text(stringResource(R.string.label_quantity_unit) + "*") },
-            placeholder = { Text("kg, g, pcs...")},
+            // TODO: Use string resource R.string.label_quantity_unit_required
+            label = { Text(stringResource(R.string.label_quantity_unit_placeholder) + "*") },
+             // TODO: Use string resource R.string.placeholder_quantity_unit
+            placeholder = { Text(stringResource(R.string.placeholder_quantity_unit_placeholder))},
             modifier = Modifier.fillMaxWidth(),
             isError = uiState.quantityUnitError != null,
             supportingText = { uiState.quantityUnitError?.let { Text(it) } },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            singleLine = true
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
         )
 
         OutlinedTextField(
             value = uiState.lowStockThreshold,
             onValueChange = onLowStockThresholdChanged,
-            label = { Text(stringResource(R.string.label_low_stock_threshold)) },
+            // TODO: Use string resource R.string.label_low_stock_threshold
+            label = { Text(stringResource(R.string.label_low_stock_threshold_placeholder)) },
             modifier = Modifier.fillMaxWidth(),
             isError = uiState.lowStockThresholdError != null,
             supportingText = { uiState.lowStockThresholdError?.let { Text(it) } },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
-            singleLine = true
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium
         )
     }
 }
@@ -281,15 +313,20 @@ fun AddEditFoodItemScreenPreview_EditError() {
     }
 }
 
-// Needed String resources for preview and actual use:
-// <string name="title_edit_food_item">Modifier Article</string>
-// <string name="title_add_food_item">Ajouter Article</string>
-// <string name="food_item_photo_description_current">Photo actuelle de l\'article</string>
-// <string name="label_brand">Marque</string>
-// <string name="label_type">Type</string>
-// <string name="label_target_species">Espèce Cible</string>
-// <string name="label_initial_quantity">Quantité Initiale</string>
-// <string name="label_current_quantity">Quantité Actuelle</string>
-// <string name="label_quantity_unit">Unité (ex: kg, g)</string>
-// <string name="label_low_stock_threshold">Seuil de Stock Bas (optionnel)</string>
-// (Other common strings like "action_save", "action_back", "action_choose_photo", "label_name" are assumed)
+// Placeholder string resource IDs used:
+// R.string.title_edit_food_item_placeholder
+// R.string.title_add_food_item_placeholder
+// R.string.action_back_placeholder
+// R.string.action_save_placeholder
+// R.string.food_item_photo_description_current_placeholder
+// R.string.choose_photo_icon_description_placeholder
+// R.string.action_choose_photo_placeholder
+// R.string.label_name_placeholder
+// R.string.label_brand_placeholder
+// R.string.label_type_placeholder
+// R.string.label_target_species_placeholder
+// R.string.label_initial_quantity_placeholder
+// R.string.label_current_quantity_placeholder
+// R.string.label_quantity_unit_placeholder
+// R.string.placeholder_quantity_unit_placeholder
+// R.string.label_low_stock_threshold_placeholder

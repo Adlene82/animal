@@ -37,10 +37,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
-import com.example.petmanager.R
+import com.example.petmanager.R // Assuming R class is generated
 import com.example.petmanager.data.local.model.Event
 import com.example.petmanager.ui.navigation.Screen
-import com.example.petmanager.ui.screens.BottomNavItem // Assuming BottomNavItem is in a shared location
+import com.example.petmanager.ui.screens.BottomNavItem // Assuming BottomNavItem is in ui.screens
 import com.example.petmanager.ui.theme.PetManagerTheme
 import java.time.LocalDate
 import java.time.YearMonth
@@ -56,12 +56,12 @@ fun CalendarScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // For Bottom Navigation Bar
     val bottomNavItems = listOf(
-        BottomNavItem("Accueil", Icons.Filled.Home, Screen.Dashboard),
-        BottomNavItem("Calendrier", Icons.Filled.CalendarMonth, Screen.Calendar),
-        BottomNavItem("Réserve", Icons.Filled.Inventory, Screen.FoodStock),
-        BottomNavItem("Contacts", Icons.Filled.Contacts, Screen.Contacts)
+        // TODO: Use string resources for labels R.string.bottom_nav_home, etc.
+        BottomNavItem(stringResource(id = R.string.bottom_nav_home_placeholder), Icons.Filled.Home, Screen.Dashboard),
+        BottomNavItem(stringResource(id = R.string.bottom_nav_calendar_placeholder), Icons.Filled.CalendarMonth, Screen.Calendar),
+        BottomNavItem(stringResource(id = R.string.bottom_nav_food_stock_placeholder), Icons.Filled.Inventory, Screen.FoodStock),
+        BottomNavItem(stringResource(id = R.string.bottom_nav_contacts_placeholder), Icons.Filled.Contacts, Screen.Contacts)
     )
     val currentRoute = navController.currentBackStackEntry?.destination?.route
     val selectedBottomNavItem = remember(currentRoute) {
@@ -71,18 +71,26 @@ fun CalendarScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.title_calendar)) },
+                // TODO: Use string resource R.string.title_calendar
+                title = { Text(stringResource(id = R.string.title_calendar_placeholder), style = MaterialTheme.typography.titleLarge) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant, // M3 style
+                    titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                navController.navigate(Screen.AddEditEvent.createRoute(null))
-            }) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_add_event))
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate(Screen.AddEditEvent.createRoute(null))
+                },
+                modifier = Modifier.minimumInteractiveComponentSize() // Ensure touch target
+            ) {
+                Icon(
+                    Icons.Filled.Add,
+                    // TODO: Use string resource R.string.action_add_event
+                    contentDescription = stringResource(id = R.string.action_add_event_placeholder)
+                )
             }
         },
         bottomBar = {
@@ -90,7 +98,7 @@ fun CalendarScreen(
                 bottomNavItems.forEachIndexed { index, item ->
                     NavigationBarItem(
                         icon = { Icon(item.icon, contentDescription = item.label) },
-                        label = { Text(item.label) },
+                        label = { Text(item.label, style = MaterialTheme.typography.labelSmall) }, // M3 label style
                         selected = selectedBottomNavItem == index,
                         onClick = {
                             navController.navigate(item.screen.route) {
@@ -131,7 +139,7 @@ fun CalendarScreenContent(
             currentMonth = uiState.currentMonth,
             onPreviousMonth = onPreviousMonth,
             onNextMonth = onNextMonth,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp) // Adjusted padding
         )
 
         DaysOfWeekHeader(modifier = Modifier.padding(horizontal = 16.dp))
@@ -140,34 +148,37 @@ fun CalendarScreenContent(
             days = uiState.daysInMonthWithPadding,
             selectedDate = uiState.selectedDate,
             onDateSelected = onDateSelected,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp) // Added vertical padding
         )
 
         Divider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
 
         Text(
-            text = stringResource(R.string.events_for_date, uiState.selectedDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))),
-            style = MaterialTheme.typography.titleMedium,
+            // TODO: Use string resource R.string.events_for_date
+            text = stringResource(id = R.string.events_for_date_placeholder, uiState.selectedDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))),
+            style = MaterialTheme.typography.titleMedium, // Consistent typography
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
-        if (uiState.isLoading) {
+        if (uiState.isLoading && uiState.eventsByDate.isEmpty()) { // Show loader only if events are truly not loaded yet
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally).padding(16.dp))
         } else if (uiState.selectedDateEvents.isEmpty()) {
             Text(
-                stringResource(R.string.no_events_for_date),
+                // TODO: Use string resource R.string.no_events_for_date
+                stringResource(id = R.string.no_events_for_date_placeholder),
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(horizontal = 16.dp).align(Alignment.CenterHorizontally)
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(16.dp).fillMaxWidth().align(Alignment.CenterHorizontally)
             )
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp) // Consistent spacing
             ) {
                 items(uiState.selectedDateEvents, key = { it.eventId }) { event ->
                     EventItemCard(event = event, onClick = { onEventClick(event.eventId) })
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -194,31 +205,41 @@ fun MonthSelector(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        IconButton(onClick = onPreviousMonth) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = stringResource(R.string.action_previous_month))
+        IconButton(onClick = onPreviousMonth, modifier = Modifier.minimumInteractiveComponentSize()) {
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                // TODO: Use string resource R.string.action_previous_month
+                contentDescription = stringResource(id = R.string.action_previous_month_placeholder)
+            )
         }
         Text(
             text = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())).replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.titleLarge, // Adjusted for prominence
+            fontWeight = FontWeight.SemiBold
         )
-        IconButton(onClick = onNextMonth) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = stringResource(R.string.action_next_month))
+        IconButton(onClick = onNextMonth, modifier = Modifier.minimumInteractiveComponentSize()) {
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                // TODO: Use string resource R.string.action_next_month
+                contentDescription = stringResource(id = R.string.action_next_month_placeholder)
+            )
         }
     }
 }
 
 @Composable
 fun DaysOfWeekHeader(modifier: Modifier = Modifier) {
-    Row(modifier = modifier.fillMaxWidth()) {
-        val daysOfWeek = listOf("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim") // Adjust for locale
+    Row(modifier = modifier.fillMaxWidth().padding(vertical = 8.dp)) { // Added vertical padding
+        // TODO: Potentially localize day abbreviations
+        val daysOfWeek = listOf("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim")
         daysOfWeek.forEach { day ->
             Text(
                 text = day,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodySmall, // Appropriate for header
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant // Softer color
             )
         }
     }
@@ -234,8 +255,8 @@ fun CalendarGrid(
     LazyVerticalGrid(
         columns = GridCells.Fixed(7),
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp), // Adjusted spacing
+        horizontalArrangement = Arrangement.spacedBy(6.dp), // Adjusted spacing
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
         items(days, key = { it.date.toEpochDay() }) { day ->
@@ -254,40 +275,52 @@ fun CalendarDayCell(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val cellColor = when {
+    val cellBackgroundColor = when {
         isSelected -> MaterialTheme.colorScheme.primaryContainer
-        !day.isCurrentMonth -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-        else -> Color.Transparent // Or MaterialTheme.colorScheme.surface
+        !day.isCurrentMonth -> MaterialTheme.colorScheme.surface.copy(alpha = 0.5f) // More subtle for non-current month
+        else -> Color.Transparent
+    }
+    val cellBorderColor = when {
+        isSelected -> MaterialTheme.colorScheme.primary
+        day.date == LocalDate.now() && day.isCurrentMonth -> MaterialTheme.colorScheme.outline // Today's outline
+        else -> Color.Transparent
     }
     val textColor = when {
         isSelected -> MaterialTheme.colorScheme.onPrimaryContainer
-        !day.isCurrentMonth -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+        !day.isCurrentMonth -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        day.date == LocalDate.now() && day.isCurrentMonth -> MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.onSurface
     }
+    val eventIndicatorColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary
 
     Box(
         modifier = Modifier
-            .aspectRatio(1f) // Make cells square
-            .clip(MaterialTheme.shapes.small)
-            .background(cellColor)
-            .clickable(enabled = day.isCurrentMonth || isSelected) { onClick() } // Allow clicking selected day even if not current month
-            .padding(4.dp),
+            .aspectRatio(1f) // Maintain square cells
+            .clip(MaterialTheme.shapes.small) // Consistent M3 shape
+            .background(cellBackgroundColor)
+            .border(BorderStroke(1.dp, cellBorderColor), MaterialTheme.shapes.small)
+            .clickable(enabled = day.isCurrentMonth || isSelected) { onClick() }
+            .minimumInteractiveComponentSize(), // Ensure touch target
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Text(
                 text = day.date.dayOfMonth.toString(),
                 color = textColor,
-                fontSize = 14.sp,
-                fontWeight = if (isSelected || day.date == LocalDate.now()) FontWeight.Bold else FontWeight.Normal
+                fontSize = 14.sp, // Standard body size
+                fontWeight = if (isSelected || (day.date == LocalDate.now() && day.isCurrentMonth)) FontWeight.Bold else FontWeight.Normal
             )
-            if (day.hasEvents && day.isCurrentMonth) { // Show dot only for current month days with events
+            if (day.hasEvents && day.isCurrentMonth) {
                 Box(
                     modifier = Modifier
+                        .padding(top = 2.dp) // Space between number and dot
                         .size(6.dp)
                         .clip(CircleShape)
-                        .background(if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary)
+                        .background(eventIndicatorColor)
                 )
+            } else {
+                 // Ensure consistent height even without dot by adding a Spacer or minHeight to Column
+                Spacer(modifier = Modifier.height(8.dp)) // Adjust to match dot size + padding
             }
         }
     }
@@ -316,17 +349,11 @@ fun CalendarScreenPreview_Loaded() {
     }
 }
 
-// Required String resources:
-// <string name="title_calendar">Calendrier</string>
-// <string name="action_add_event">Ajouter un événement</string>
-// <string name="action_previous_month">Mois précédent</string>
-// <string name="action_next_month">Mois suivant</string>
-// <string name="events_for_date">Événements pour le %1$s</string>
-// <string name="no_events_for_date">Aucun événement pour cette date.</string>
-// (BottomNav item labels like "Accueil", "Calendrier", "Réserve", "Contacts" are assumed from DashboardScreen)
-// (BottomNavItem data class needs to be accessible, e.g. moved to ui.screens or ui.common)
-// For preview, I've assumed BottomNavItem is accessible. If not, FoodStockScreen's BottomNavItem will need to be moved to a common location.
-// For now, I'll create a local BottomNavItem in CalendarScreen.kt for preview to work if it's not shared.
-
-// Local BottomNavItem for Preview if not shared:
-// data class BottomNavItem(val label: String, val icon: ImageVector, val screen: Screen)
+// Placeholder string resource IDs used:
+// R.string.title_calendar_placeholder
+// R.string.action_add_event_placeholder
+// R.string.action_previous_month_placeholder
+// R.string.action_next_month_placeholder
+// R.string.events_for_date_placeholder
+// R.string.no_events_for_date_placeholder
+// Assuming BottomNavItem placeholders are defined as in FoodStockScreen or shared.

@@ -1,6 +1,7 @@
 package com.example.petmanager.ui.screens.calendar
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cake // Anniversaire
@@ -8,16 +9,20 @@ import androidx.compose.material.icons.filled.Event // Autre
 import androidx.compose.material.icons.filled.LocalHospital // RDV_VETO
 import androidx.compose.material.icons.filled.Medication // TRAITEMENT
 import androidx.compose.material.icons.filled.Vaccines // VACCIN
+import androidx.compose.material.icons.filled.ContentCut // Grooming
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.petmanager.R // Assuming R class is generated
 import com.example.petmanager.data.local.model.Event
 import com.example.petmanager.ui.theme.PetManagerTheme
 import java.time.LocalDateTime
@@ -31,14 +36,19 @@ fun EventItemCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val eventTypeDetails = getEventTypeDetails(event.eventType)
-    val formatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
+    val eventTypeDetails = getEventTypeDetails(eventType = event.eventType)
+    val timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
 
     Card(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = eventTypeDetails.backgroundColor.copy(alpha = 0.1f))
+        modifier = modifier
+            .fillMaxWidth()
+            .minimumInteractiveComponentSize(), // Ensure minimum touch target
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp), // Subtle elevation
+        shape = MaterialTheme.shapes.medium, // Consistent M3 shape
+        colors = CardDefaults.cardColors(
+            containerColor = eventTypeDetails.backgroundColor.copy(alpha = 0.15f) // Slightly more pronounced tint
+        )
     ) {
         Row(
             modifier = Modifier
@@ -48,7 +58,8 @@ fun EventItemCard(
         ) {
             Icon(
                 imageVector = eventTypeDetails.icon,
-                contentDescription = "Event type: ${event.eventType}",
+                // TODO: Use string resource R.string.event_type_icon_description
+                contentDescription = stringResource(id = R.string.event_type_icon_description_placeholder, eventTypeDetails.displayName),
                 tint = eventTypeDetails.iconColor,
                 modifier = Modifier.size(40.dp)
             )
@@ -58,16 +69,20 @@ fun EventItemCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = event.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium, // Adjusted typography
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface // Explicit color
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "${event.dateTime.format(formatter)} - ${eventTypeDetails.displayName}",
-                    style = MaterialTheme.typography.bodyMedium,
+                    // TODO: Use string resource R.string.event_time_label_prefix
+                    text = stringResource(id = R.string.event_time_label_prefix_placeholder) + " ${event.dateTime.format(timeFormatter)}",
+                    style = MaterialTheme.typography.bodyMedium, // Adjusted typography
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant // Softer color
                 )
                 if (!event.description.isNullOrBlank()) {
                     Text(
@@ -75,7 +90,8 @@ fun EventItemCard(
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
             }
@@ -87,17 +103,19 @@ data class EventTypeVisuals(
     val displayName: String,
     val icon: ImageVector,
     val iconColor: Color,
-    val backgroundColor: Color // For card background tint or indicator
+    val backgroundColor: Color
 )
 
 @Composable
 fun getEventTypeDetails(eventType: String): EventTypeVisuals {
+    val currentScheme = MaterialTheme.colorScheme
     return when (eventType.uppercase()) {
-        "VACCIN" -> EventTypeVisuals("Vaccination", Icons.Filled.Vaccines, MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primaryContainer)
-        "TRAITEMENT" -> EventTypeVisuals("Traitement", Icons.Filled.Medication, Color(0xFFFFA000), Color(0xFFFFE0B2)) // Orange
-        "RDV_VETO" -> EventTypeVisuals("Rdv Vétérinaire", Icons.Filled.LocalHospital, MaterialTheme.colorScheme.error, MaterialTheme.colorScheme.errorContainer)
-        "ANNIVERSAIRE" -> EventTypeVisuals("Anniversaire", Icons.Filled.Cake, Color(0xFF7B1FA2), Color(0xFFE1BEE7)) // Purple
-        else -> EventTypeVisuals(eventType.replaceFirstChar { it.titlecase() }, Icons.Filled.Event, MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.secondaryContainer)
+        "VACCIN" -> EventTypeVisuals("Vaccination", Icons.Filled.Vaccines, currentScheme.primary, currentScheme.primaryContainer)
+        "TRAITEMENT" -> EventTypeVisuals("Traitement", Icons.Filled.Medication, currentScheme.secondary, currentScheme.secondaryContainer)
+        "RDV_VETO" -> EventTypeVisuals("Rdv Vétérinaire", Icons.Filled.LocalHospital, currentScheme.error, currentScheme.errorContainer)
+        "ANNIVERSAIRE" -> EventTypeVisuals("Anniversaire", Icons.Filled.Cake, Color(0xFF7B1FA2), Color(0xFFE1BEE7)) // Custom Purple
+        "GROOMING" -> EventTypeVisuals("Toilettage", Icons.Filled.ContentCut, Color(0xFF0288D1), Color(0xFFB3E5FC)) // Custom Blue
+        else -> EventTypeVisuals(eventType.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }, Icons.Filled.Event, currentScheme.tertiary, currentScheme.tertiaryContainer)
     }
 }
 
@@ -135,19 +153,23 @@ fun EventItemCardPreview_BirthdayDark() {
     }
 }
 
-@Preview(showBackground = true, name = "Event Item Card - Default Type")
+@Preview(showBackground = true, name = "Event Item Card - Grooming Type")
 @Composable
-fun EventItemCardPreview_Default() {
+fun EventItemCardPreview_Grooming() {
     PetManagerTheme {
         val sampleEvent = Event(
             eventId = 3,
             animalId = 1,
             title = "Toilettage",
             dateTime = LocalDateTime.now().plusDays(3).withHour(14).withMinute(0),
-            eventType = "Toilettage", // Custom type
+            eventType = "GROOMING", // Custom type
             description = "Coupe d'été.",
             contactId = null
         )
         EventItemCard(event = sampleEvent, onClick = {})
     }
 }
+
+// Placeholder string resource IDs used:
+// R.string.event_type_icon_description_placeholder
+// R.string.event_time_label_prefix_placeholder

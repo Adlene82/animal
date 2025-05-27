@@ -13,22 +13,10 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -40,9 +28,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
-import com.example.petmanager.R
+import com.example.petmanager.R // Assuming R class is generated
 import com.example.petmanager.ui.navigation.Screen
-import com.example.petmanager.ui.screens.foodstock.FoodItemCard // Will be created next
+// Assuming BottomNavItem is moved to a common location like ui.screens
+// For this overwrite, ensure BottomNavItem.kt exists in ui.screens or a common package.
+// If not, this screen might temporarily define it or this overwrite will fail if it's imported.
+// For now, let's assume it's in `com.example.petmanager.ui.screens.BottomNavItem`
+import com.example.petmanager.ui.screens.foodstock.FoodItemCard
 import com.example.petmanager.ui.screens.foodstock.FoodItemDisplay
 import com.example.petmanager.ui.screens.foodstock.FoodStockUiState
 import com.example.petmanager.ui.screens.foodstock.FoodStockViewModel
@@ -57,44 +49,49 @@ fun FoodStockScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // For Bottom Navigation Bar - assuming FoodStockScreen is a top-level destination.
-    // If it's part of Dashboard's NavHost, this might be handled differently.
     val bottomNavItems = listOf(
-        BottomNavItem("Accueil", Icons.Filled.Home, Screen.Dashboard),
-        BottomNavItem("Calendrier", Icons.Filled.CalendarMonth, Screen.Calendar),
-        BottomNavItem("Réserve", Icons.Filled.Inventory, Screen.FoodStock),
-        BottomNavItem("Contacts", Icons.Filled.Contacts, Screen.Contacts)
+        // TODO: Use string resources for labels R.string.bottom_nav_home, etc.
+        BottomNavItem(stringResource(id = R.string.bottom_nav_home_placeholder), Icons.Filled.Home, Screen.Dashboard),
+        BottomNavItem(stringResource(id = R.string.bottom_nav_calendar_placeholder), Icons.Filled.CalendarMonth, Screen.Calendar),
+        BottomNavItem(stringResource(id = R.string.bottom_nav_food_stock_placeholder), Icons.Filled.Inventory, Screen.FoodStock),
+        BottomNavItem(stringResource(id = R.string.bottom_nav_contacts_placeholder), Icons.Filled.Contacts, Screen.Contacts)
     )
-    // Determine current selected item based on route
     val currentRoute = navController.currentBackStackEntry?.destination?.route
     val selectedBottomNavItem = remember(currentRoute) {
         bottomNavItems.indexOfFirst { it.screen.route == currentRoute }.coerceAtLeast(0)
     }
 
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.title_food_stock)) },
+                // TODO: Use string resource R.string.title_food_stock
+                title = { Text(stringResource(id = R.string.title_food_stock_placeholder), style = MaterialTheme.typography.titleLarge) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant, // M3 style
+                    titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                navController.navigate(Screen.AddEditFoodItem.createRoute())
-            }) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_add_food_item))
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate(Screen.AddEditFoodItem.createRoute())
+                },
+                modifier = Modifier.minimumInteractiveComponentSize() // Ensure touch target
+            ) {
+                Icon(
+                    Icons.Filled.Add,
+                    // TODO: Use string resource R.string.action_add_food_item
+                    contentDescription = stringResource(id = R.string.action_add_food_item_placeholder)
+                )
             }
         },
         bottomBar = {
-            NavigationBar {
+            NavigationBar { // M3 NavigationBar
                 bottomNavItems.forEachIndexed { index, item ->
                     NavigationBarItem(
-                        icon = { Icon(item.icon, contentDescription = item.label) },
-                        label = { Text(item.label) },
+                        icon = { Icon(item.icon, contentDescription = item.label) }, // Icon's CD is its label
+                        label = { Text(item.label, style = MaterialTheme.typography.labelSmall) }, // M3 label style
                         selected = selectedBottomNavItem == index,
                         onClick = {
                             navController.navigate(item.screen.route) {
@@ -114,7 +111,7 @@ fun FoodStockScreen(
             modifier = Modifier.padding(innerPadding),
             uiState = uiState,
             onFoodItemClick = { foodItemId ->
-                viewModel.onFoodItemClicked(foodItemId) // For logging or other VM logic
+                viewModel.onFoodItemClicked(foodItemId)
                 navController.navigate(Screen.AddEditFoodItem.createRoute(foodItemId))
             }
         )
@@ -135,7 +132,8 @@ fun FoodStockContent(
             CircularProgressIndicator()
         } else if (uiState.foodItems.isEmpty()) {
             Text(
-                text = stringResource(R.string.empty_food_stock),
+                // TODO: Use string resource R.string.empty_food_stock
+                text = stringResource(id = R.string.empty_food_stock_placeholder),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(16.dp)
@@ -143,8 +141,8 @@ fun FoodStockContent(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                contentPadding = PaddingValues(all = 16.dp), // Consistent padding
+                verticalArrangement = Arrangement.spacedBy(16.dp) // Consistent spacing
             ) {
                 items(uiState.foodItems, key = { it.id }) { foodItem ->
                     FoodItemCard(foodItem = foodItem, onClick = { onFoodItemClick(foodItem.id) })
@@ -191,7 +189,11 @@ fun FoodStockScreenPreview_Loading() {
     }
 }
 
-// Needed string resources for preview and actual use:
-// <string name="title_food_stock">Réserve de Nourriture</string>
-// <string name="action_add_food_item">Ajouter un article de nourriture</string>
-// <string name="empty_food_stock">Aucun article de nourriture ajouté. Cliquez sur + pour commencer.</string>
+// Placeholder string resource IDs used:
+// R.string.title_food_stock_placeholder
+// R.string.action_add_food_item_placeholder
+// R.string.empty_food_stock_placeholder
+// R.string.bottom_nav_home_placeholder (assuming shared)
+// R.string.bottom_nav_calendar_placeholder (assuming shared)
+// R.string.bottom_nav_food_stock_placeholder (assuming shared)
+// R.string.bottom_nav_contacts_placeholder (assuming shared)
